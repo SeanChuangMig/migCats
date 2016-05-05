@@ -1,11 +1,13 @@
 package sample.com.cats;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
@@ -14,6 +16,8 @@ import android.os.AsyncTask;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -27,6 +31,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,6 +44,7 @@ import java.util.List;
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
     private static final String TAG = "MainActivity";
+    private static final int MY_PERMISSIONS_REQUEST_READ_CONTACTS = 101;
 
     private final String KEY_TYPE = "type";
     private final String KEY_APP = "appLink";
@@ -69,7 +75,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         if (mType == null) {
             mType = "";
         }
-        Log.d("TEST", "onCreate type=" + mType);
+        Log.i(TAG, "onCreate type=" + mType);
         mContext = this;
 
         mTempPath = String.format("%s/%s", Environment.getExternalStorageDirectory(), "tempCats.jpg");
@@ -88,11 +94,85 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         findViews();
     }
 
+    @Override
+    public void onStart(){
+        super.onStart();
+        checkIfHaveRuntimePermission();
+    }
+
     private void findViews() {
         mGridView = (GridView) findViewById(R.id.gridview);
         mGridView.setAdapter(new CustomGrid());
         mGridView.setOnItemClickListener(this);
 
+    }
+
+    private void checkIfHaveRuntimePermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.i(TAG, "No runtime permission");
+            requestRuntimePermission();
+        }
+        else {
+            Log.i(TAG, "Already have runtime permission");
+        }
+    }
+
+    private void requestRuntimePermission() {
+        // Should we show an explanation?
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+
+            Log.i(TAG, "show explanation");
+            // Show an explanation to the user *asynchronously* -- don't block
+            // this thread waiting for the user's response! After the user
+            // sees the explanation, try again to request the permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+
+        } else {
+
+            // No explanation needed, we can request the permission.
+            Log.i(TAG, "Request permission");
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    MY_PERMISSIONS_REQUEST_READ_CONTACTS);
+
+            // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+            // app-defined int constant. The callback method gets the
+            // result of the request.
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case MY_PERMISSIONS_REQUEST_READ_CONTACTS: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    // permission was granted, yay! Do the
+                    // contacts-related task you need to do.
+                    Log.i(TAG, "Permission granted!");
+                    Toast.makeText(this, "Permission granted!", Toast.LENGTH_SHORT).show();
+
+                } else {
+                    Log.i(TAG, "Permission denied!");
+                    Toast.makeText(this, "Permission denied!", Toast.LENGTH_SHORT).show();
+                    // permission denied, boo! Disable the
+                    // functionality that depends on this permission.
+                    finish();
+                }
+                return;
+            }
+
+            // other 'case' lines to check for other
+            // permissions this app might request
+        }
     }
 
     private void sendResultBack() {
@@ -102,7 +182,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         final Uri uri = Uri.parse(uriString);
         switch (mType) {
             case FROM_RESULT:
-                Log.e(TAG, "FROM_RESULT: " +mType+ " " + uriString);
+                Log.i(TAG, "setResult: " +mType+ " " + uriString);
                 intent = new Intent();
                 intent.setData(uri);
                 intent.putExtra(Intent.EXTRA_STREAM, uri);
@@ -111,10 +191,11 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 break;
             case PREFIX_CHAT:
             case PREFIX_POST:
-                Log.e(TAG, "PREFIX_CHAT: " +mType+ " " + uriString);
+                Log.i(TAG, "startActivity: " +mType+ " " + uriString);
                 String migmePacketageName = "com.projectgoth";
                 intent = getPackageManager().getLaunchIntentForPackage(migmePacketageName);
                 if (intent != null) {
+                    Log.e(TAG, "startActivity AA");
                     intent.setAction(Intent.ACTION_SEND);
                     intent.setData(uri);
                     intent.putExtra(Intent.EXTRA_STREAM, uri);
@@ -122,6 +203,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                     intent.setType("text/plain");
                     startActivity(intent);
                 } else {
+                    Log.e(TAG, "startActivity BB");
                     intent = new Intent(Intent.ACTION_VIEW);
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     intent.setData(Uri.parse("market://details?id=com.projectgoth"));
