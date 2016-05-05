@@ -38,6 +38,7 @@ import java.util.List;
 
 
 public class MainActivity extends ActionBarActivity implements AdapterView.OnItemClickListener {
+    private static final String TAG = "MainActivity";
 
     private final String KEY_TYPE = "type";
     private final String KEY_APP = "appLink";
@@ -92,10 +93,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         mGridView.setAdapter(new CustomGrid());
         mGridView.setOnItemClickListener(this);
 
-        WebView webView = (WebView) findViewById(R.id.webView);
-        webView.getSettings().setJavaScriptEnabled(true);
-        webView.setWebViewClient(new MyWebViewClient());
-        webView.loadUrl("https://www.google.com.tw/search?site=imghp&tbm=isch&source=hp&biw=480&bih=320&q=cats");
     }
 
     private void sendResultBack() {
@@ -105,6 +102,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         final Uri uri = Uri.parse(uriString);
         switch (mType) {
             case FROM_RESULT:
+                Log.e(TAG, "FROM_RESULT: " +mType+ " " + uriString);
                 intent = new Intent();
                 intent.setData(uri);
                 intent.putExtra(Intent.EXTRA_STREAM, uri);
@@ -113,6 +111,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 break;
             case PREFIX_CHAT:
             case PREFIX_POST:
+                Log.e(TAG, "PREFIX_CHAT: " +mType+ " " + uriString);
                 String migmePacketageName = "com.projectgoth";
                 intent = getPackageManager().getLaunchIntentForPackage(migmePacketageName);
                 if (intent != null) {
@@ -140,21 +139,6 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
         }
     };
 
-    private class MyWebViewClient extends WebViewClient {
-
-        @Override
-        public void onLoadResource(WebView view, String url) {
-            super.onLoadResource(view, url);
-            if (mCurrentURL == null) {
-                if (url.contains(".jpg")) {
-                    view.stopLoading();
-                    mCurrentURL = url;
-                    new SavePhotoTask().execute(mCurrentURL);
-                }
-            }
-        }
-    }
-
     private class SavePhotoTask extends AsyncTask {
         @Override
         protected void onPreExecute() {
@@ -172,15 +156,7 @@ public class MainActivity extends ActionBarActivity implements AdapterView.OnIte
                 String path = params[0].toString();
                 InputStream is;
 
-                if (path.startsWith("http")) {
-                    URL url = new URL(mCurrentURL);
-                    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-                    conn.setDoInput(true);
-                    conn.connect();
-                    is = conn.getInputStream();
-                } else {
-                    is = getAssets().open(path);
-                }
+                is = getAssets().open(path);
                 Bitmap bm = BitmapFactory.decodeStream(is);
 
                 FileOutputStream fos = new FileOutputStream(mTempPath);
