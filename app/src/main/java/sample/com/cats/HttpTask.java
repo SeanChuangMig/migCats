@@ -3,9 +3,13 @@ package sample.com.cats;
 import android.os.AsyncTask;
 import android.util.Log;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
 
-import okhttp3.Response;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -16,12 +20,14 @@ public class HttpTask extends AsyncTask<String, Void, String> {
         AUTH, TOKEN, PROFILE, FRIEND, CREATE_POST, INVITE, BILLING
     }
     private static String TAG = "HttpTask";
-    private LoginActivity mActivity;
+    private MainActivity mActivity;
     private HTTP_TASK mTask;
+    private String mToken;
 
-    public HttpTask(LoginActivity activity, HTTP_TASK task) {
+    public HttpTask(MainActivity activity, HTTP_TASK task, String token) {
         this.mActivity = activity;
         this.mTask = task;
+        this.mToken = token;
     }
 
     @Override
@@ -39,22 +45,22 @@ public class HttpTask extends AsyncTask<String, Void, String> {
         Log.i(TAG, result);
         switch(mTask) {
             case TOKEN:
-                mActivity.setToken(result);
+//                mActivity.setToken(result);
                 break;
             case PROFILE:
-                mActivity.showProfile(result);
+                mActivity.setProfile(result);
                 break;
             case FRIEND:
-                mActivity.showFriend(result);
+//                mActivity.showFriend(result);
                 break;
             case CREATE_POST:
-                mActivity.showCreatePost(result);
+//                mActivity.showCreatePost(result);
                 break;
             case INVITE:
-                mActivity.showInvite(result);
+//                mActivity.showInvite(result);
                 break;
             case BILLING:
-                mActivity.showBilling(result);
+//                mActivity.showBilling(result);
                 break;
         }
     }
@@ -68,21 +74,44 @@ public class HttpTask extends AsyncTask<String, Void, String> {
             }
             case TOKEN: {
                 Log.e(TAG, "Request TOKEN");
-                NetworkManager networkManager = new NetworkManager();
-                try {
-                    JSONObject jobj = networkManager.postAuthData("https://oauth.mig.me/oauth/token", mActivity.getAuthCode().trim());
-                    result = jobj.getString("access_token");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+//                NetworkManager networkManager = new NetworkManager();
+//                try {
+//                    List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>();
+//                    nameValuePair.add(new BasicNameValuePair("code", mActivity.getAuthCode().trim()));
+//                    nameValuePair.add(new BasicNameValuePair("client_id", LoginActivity.CLIENT_ID));
+//                    nameValuePair.add(new BasicNameValuePair("redirect_uri", LoginActivity.REDIRECT_URI));
+//                    nameValuePair.add(new BasicNameValuePair("grant_type", "authorization_code"));
+//                    ServerResponse response = networkManager.postData("https://oauth.mig.me/oauth/token", nameValuePair);
+//                    if (response.getStatusCode() == HttpStatus.SC_OK) {
+//                        Log.d(TAG, "OK");
+//                        Log.d(TAG, response.getJsonObj().toString());
+//                        if(response.getJsonObj() instanceof JSONObject) {
+//                            JSONObject jObj = (JSONObject) response.getJsonObj();
+//                            result = jObj.getString("access_token");
+//                        }
+//                    } else {
+//                        Log.d(TAG, "NOT OK");
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
                 break;
             }
             case PROFILE: {
                 Log.e(TAG, "Request PROFILE");
                 NetworkManager networkManager = new NetworkManager();
                 try {
-                    JSONObject jobj = networkManager.requestJsonData("https://mig.me/datasvc/API/user/profile", mActivity.getToken().trim());
-                    result = jobj.toString();
+                    ServerResponse response = networkManager.getJsonData("https://mig.me/datasvc/API/user/profile", mToken.trim());
+                    if (response.getStatusCode() == HttpStatus.SC_OK) {
+                        Log.d(TAG, "OK");
+                        Log.d(TAG, response.getJsonObj().toString());
+                        if(response.getJsonObj() instanceof JSONObject) {
+                            JSONObject jObj = (JSONObject) response.getJsonObj();
+                            result = jObj.toString();
+                        }
+                    } else {
+                        Log.d(TAG, "NOT OK");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -92,8 +121,17 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                 Log.e(TAG, "Request FRIEND");
                 NetworkManager networkManager = new NetworkManager();
                 try {
-                    JSONObject jobj = networkManager.requestJsonData("https://mig.me/datasvc/API/user/friends?limit=-1&offset=0", mActivity.getToken().trim());
-                    result = jobj.toString();
+                    ServerResponse response = networkManager.getJsonData("https://mig.me/datasvc/API/user/friends?limit=-1&offset=0", mToken.trim());
+                    if (response.getStatusCode() == HttpStatus.SC_OK) {
+                        Log.d(TAG, "OK");
+                        Log.d(TAG, response.getJsonObj().toString());
+                        if(response.getJsonObj() instanceof JSONObject) {
+                            JSONObject jObj = (JSONObject) response.getJsonObj();
+                            result = jObj.toString();
+                        }
+                    } else {
+                        Log.d(TAG, "NOT OK");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -104,7 +142,7 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                 NetworkManager networkManager = new NetworkManager();
                 try {
                     JSONObject jObj = new JSONObject();
-                    jObj.put("body", "$%^ @by migme test app");
+                    jObj.put("body", "$%^&*  @by migme test app");
                     jObj.put("privacy", 0);
                     jObj.put("reply_permission", 0);
                     jObj.put("originality", 1);
@@ -115,8 +153,17 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                     subJObj.put("displayName", "test");
                     jObj.put("location", subJObj);
 
-                    JSONObject jobj = networkManager.requestJsonData("https://mig.me/datasvc/API/post/create", jObj, mActivity.getToken().trim());
-                    result = jobj.toString();
+                    ServerResponse response = networkManager.postJsonData("https://mig.me/datasvc/API/post/create", jObj, mToken.trim());
+                    if (response.getStatusCode() == HttpStatus.SC_OK) {
+                        Log.d(TAG, "OK");
+                        Log.d(TAG, response.getJsonObj().toString());
+                        if(response.getJsonObj() instanceof JSONObject) {
+                            JSONObject resJObj = (JSONObject) response.getJsonObj();
+                            result = resJObj.toString();
+                        }
+                    } else {
+                        Log.d(TAG, "NOT OK");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -128,13 +175,22 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                 try {
                     JSONObject jObj = new JSONObject();
                     JSONObject destinationsObj = new JSONObject();
-                    destinationsObj.put("user input invite stream", "");
+                    destinationsObj.put("invite string", "");
                     jObj.put("destinations", destinationsObj);
                     jObj.put("invitationEmailType", 6);
                     jObj.put("thirdPartyAppID", 1);
 
-                    JSONObject jobj = networkManager.requestJsonData("https://mig.me/datasvc/API/event/invite?method=@email&confirmToInvitationEngine=true", jObj, mActivity.getToken().trim());
-                    result = jobj.toString();
+                    ServerResponse response = networkManager.postJsonData("https://mig.me/datasvc/API/event/invite?method=@email&confirmToInvitationEngine=true", jObj, mToken.trim());
+                    if (response.getStatusCode() == HttpStatus.SC_OK) {
+                        Log.d(TAG, "OK");
+                        Log.d(TAG, response.getJsonObj().toString());
+                        if(response.getJsonObj() instanceof JSONObject) {
+                            JSONObject resJObj = (JSONObject) response.getJsonObj();
+                            result = resJObj.toString();
+                        }
+                    } else {
+                        Log.d(TAG, "NOT OK");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -150,8 +206,17 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                     jObj.put("currency", "SGD");
                     jObj.put("amount", "0.001");
 
-                    JSONObject jobj = networkManager.requestJsonData("https://mig.me/datasvc/API/user/bill", jObj, mActivity.getToken().trim());
-                    result = jobj.toString();
+                    ServerResponse response = networkManager.postJsonData("https://mig.me/datasvc/API/user/bill", jObj, mToken.trim());
+                    if (response.getStatusCode() == HttpStatus.SC_OK) {
+                        Log.d(TAG, "OK");
+                        Log.d(TAG, response.getJsonObj().toString());
+                        if(response.getJsonObj() instanceof JSONObject) {
+                            JSONObject resJObj = (JSONObject) response.getJsonObj();
+                            result = resJObj.toString();
+                        }
+                    } else {
+                        Log.d(TAG, "NOT OK");
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

@@ -1,74 +1,116 @@
 package sample.com.cats;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Gravity;
-import android.view.View;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.Executors;
 import sample.com.cats.HttpTask.HTTP_TASK;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends Activity {
     private static final String TAG = "LoginActivity";
 
     public static int PORT = 34567;
 
+    public static final String MyPREFERENCES = "MyPrefs" ;
+    public static final String MyTOKEN = "MyToken";
+
     // old
 //    public static final String CLIENT_ID = "309f818242abae8fdd1b";
-    public static final String REDIRECT_URI = "http://localhost:" + PORT + "/oauth/callback";
+//    public static final String REDIRECT_URI = "http://localhost:" + PORT + "/oauth/callback";
 
     // new
     public static final String CLIENT_ID = "410df8f0129111e6b79c57492a68b460";
-//    public static final String REDIRECT_URI = "migcat://migme/oauth/callback ";
+    public static final String REDIRECT_URI = "migcat://migme/oauth/callback";
     private static final String SCOPES = "profile test-scope invite payment store-admin payment";
 
     private WebView mWebView;
     private String mAuthCode;
     private String mToken;
-    private SocketServer mSocketServer;
+
+    SharedPreferences sharedpreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        mSocketServer = new SocketServer(this);
-        mSocketServer.start();
-        String url = "https://oauth.mig.me/oauth/auth?client_id=" + CLIENT_ID + "&redirect_uri=" + REDIRECT_URI + "&scope=" + SCOPES + "&response_type=code";
+//        WebView.setWebContentsDebuggingEnabled(true);
 
-        mWebView = (WebView) findViewById(R.id.webview);
-        mWebView.loadUrl(url);
-        mWebView.setWebViewClient(mWebViewClient);
+        Log.e(TAG, "onCreate");
+
+        Uri uri = new Uri.Builder().scheme("https")
+                .authority("oauth.mig.me")
+                .appendPath("oauth")
+                .appendPath("auth")
+                .appendQueryParameter("client_id", CLIENT_ID)
+                .appendQueryParameter("redirect_uri", REDIRECT_URI)
+                .appendQueryParameter("scope", SCOPES)
+                .appendQueryParameter("response_type", "code")
+                .build();
+
+        sharedpreferences = getSharedPreferences(MyPREFERENCES, getApplicationContext().MODE_PRIVATE);
+        mToken = sharedpreferences.getString(MyTOKEN, "");
+
+        if (mToken.length()>0) {
+            Log.e(TAG, "Get token from DB, " + mToken);
+            toMainActivity();
+        }else {
+            mWebView = (WebView) findViewById(R.id.webview);
+            mWebView.loadUrl(uri.toString());
+            mWebView.setWebViewClient(mWebViewClient);
+        }
     }
 
-    public void setAuthCode(String authCode) {
-        mAuthCode = authCode;
-        mHandler.sendEmptyMessage(HTTP_TASK.AUTH.ordinal());
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        String action = intent.getAction();
+        Uri data = intent.getData();
+        Log.e(TAG, "data "+ data);
+
+        if (action != null && action.equals(Intent.ACTION_VIEW)) {
+
+            Log.e(TAG, "send " + intent.toString());
+        }
+        Log.e(TAG, "not send " + intent.toString());
     }
 
-    public String getAuthCode() {
-        return mAuthCode;
+    private void toMainActivity(){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra(MyTOKEN ,mToken);
+        startActivity(intent);
     }
 
-    public void setToken(String token){
+    private void setToken(String token){
         mToken = token;
+        mHandler.sendEmptyMessage(HTTP_TASK.TOKEN.ordinal());
     }
 
-    public String getToken() {
-        return mToken;
+    private void writeTokenToSharePreference(){
+        sharedpreferences.edit().putString(MyTOKEN, mToken).commit();
     }
 
     public void showProfile(String data) {
@@ -100,16 +142,14 @@ public class LoginActivity extends AppCompatActivity {
         HTTP_TASK what = HTTP_TASK.values()[msg.what];
         switch (what) {
             case AUTH:
-                Log.e(TAG, "Get auth");
-                new HttpTask(LoginActivity.this, HTTP_TASK.TOKEN).executeOnExecutor(Executors.newCachedThreadPool());
+//                new HttpTask(null, HTTP_TASK.TOKEN).executeOnExecutor(Executors.newCachedThreadPool());
+                Log.e(TAG, "Get AuthCode than request Token");
+                new requestToken().executeOnExecutor(Executors.newCachedThreadPool());
                 break;
             case TOKEN:
-                Log.e(TAG, "Get token");
-                if(mToken != null) {
-                    getAlertDialog("token = " + mToken).show();
-                } else {
-                    getAlertDialog("get token error").show();
-                }
+                writeTokenToSharePreference();
+//                Toast.makeText(LoginActivity.this, "Get token", Toast.LENGTH_SHORT).show();
+                toMainActivity();
                 break;
             case PROFILE:
             case FRIEND:
@@ -125,14 +165,21 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
             Log.e(TAG, "url: " + url);
-            view.loadUrl(url);
-            return true;
+            getAuthCode(url);
+            return super.shouldOverrideUrlLoading(view, url);
         }
 
         public void onPageFinished(WebView view, String url){
 
         }
     };
+
+    private void getAuthCode(String url){
+        if(url.contains(REDIRECT_URI + "?code")) {
+            mAuthCode = url.substring((REDIRECT_URI + "?code").length() + 1);
+            mHandler.sendEmptyMessage(HTTP_TASK.AUTH.ordinal());
+        }
+    }
 
     private Handler mHandler = new Handler() {
         @Override
@@ -162,6 +209,44 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         return builder.create();
+    }
+
+    public class requestToken extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            String result="";
+            try {
+                NetworkManager networkManager = new NetworkManager();
+                List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>();
+                nameValuePair.add(new BasicNameValuePair("code", mAuthCode.trim()));
+                nameValuePair.add(new BasicNameValuePair("client_id", LoginActivity.CLIENT_ID));
+                nameValuePair.add(new BasicNameValuePair("redirect_uri", LoginActivity.REDIRECT_URI));
+                nameValuePair.add(new BasicNameValuePair("grant_type", "authorization_code"));
+                ServerResponse response = networkManager.postData("https://oauth.mig.me/oauth/token", nameValuePair);
+                if (response.getStatusCode() == HttpStatus.SC_OK) {
+                    Log.d(TAG, "OK");
+                    Log.d(TAG, response.getJsonObj().toString());
+                    if(response.getJsonObj() instanceof JSONObject) {
+                        JSONObject jObj = (JSONObject) response.getJsonObj();
+                        result = jObj.getString("access_token");
+                    }
+                } else {
+                    Log.d(TAG, "NOT OK");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String token) {
+            Log.i(TAG, "Get token");
+            setToken(token);
+
+        }
     }
 
 }

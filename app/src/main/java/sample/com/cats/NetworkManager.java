@@ -2,25 +2,30 @@ package sample.com.cats;
 
 import android.util.Log;
 
+import org.apache.http.HttpResponse;
+import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.protocol.ClientContext;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.BasicCookieStore;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.cookie.BasicClientCookie;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
+import org.apache.http.protocol.BasicHttpContext;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import java.security.cert.CertificateException;
+import android.util.Log;
+import android.webkit.CookieSyncManager;
 
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import java.util.List;
 
 
 /**
@@ -37,124 +42,282 @@ public class NetworkManager {
     public static final String WARN_API_V3 = "http://sensors.hcteam.org/api/v3/sensor_warn";
     public static final String LOGIN_API_V3 = "http://sensors.hcteam.org/api/v3/login?name=tester&pass=abcdefghijk";
 
-    private static OkHttpClient getHttpClient(boolean usingSSL) {
-        OkHttpClient httpclient = null;
+    private static HttpClient getHttpClient(boolean usingSSL) {
+        HttpClient httpclient = null;
         if (usingSSL) {
-            httpclient = createSSLHttpClient();
+            httpclient = CustomSSLSocketFactory.createSSLHttpClient();
         } else {
-            httpclient = new OkHttpClient.Builder().build();
+            httpclient = new DefaultHttpClient();
         }
         return httpclient;
     }
 
-    public static OkHttpClient createSSLHttpClient() {
-        try {
-            TrustManager[] trustAllCerts = new TrustManager[] {
-                    new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                        }
+    public ServerResponse postData(String uri, List<NameValuePair> data) throws Exception {
+        Object jResult = null;
+        ServerResponse gResponse = null;
+        if (uri != null && data != null) {
+            HttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
+            Log.d(TAG, "postData() uri = " + uri + ", data = " + data.toString());
+            HttpParams myParams = httpclient.getParams();
+            HttpConnectionParams.setConnectionTimeout(myParams, CONNECTION_TIMEOUT);
+            HttpConnectionParams.setSoTimeout(myParams, SOCKET_TIMEOUT);
 
-                        @Override
-                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                        }
+            HttpPost httppost = new HttpPost(uri);
+            //httppost.setHeader("Content­Type", "application/x-www-form-urlencoded");
+            httppost.setEntity(new UrlEncodedFormEntity(data, HTTP.UTF_8));
 
-                        @Override
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                            return new java.security.cert.X509Certificate[]{};
-                        }
-                    }
-            };
+            HttpResponse response = httpclient.execute(httppost);
 
-            HostnameVerifier hostnameVerifier = new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
+            int statusCode = response.getStatusLine().getStatusCode();
+            String result;
+            if (response.getEntity() == null) {
+                Log.d(TAG, "Entity = null");
+                result = null;
+            } else {
+                result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            }
+
+            Log.d(TAG, "statusCode = " + statusCode);
+            Log.d(TAG, "result = " + result);
+            if (null != result && result.length() > 0) {
+                Object jsonObj = new JSONTokener(result).nextValue();
+                if (jsonObj instanceof JSONObject) {
+                    jResult = (JSONObject)jsonObj;
+                } else if (jsonObj instanceof JSONArray) {
+                    jResult = (JSONArray)jsonObj;
                 }
-            };
-
-            // Install the all-trusting trust manager
-            // SSL ? TLS ?
-            SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-
-            return new OkHttpClient.Builder()
-                    .sslSocketFactory(sslContext.getSocketFactory())
-                    .hostnameVerifier(hostnameVerifier)
-                    .build();
-        } catch (Exception e) {
-            e.printStackTrace();
+            }
+            gResponse = new ServerResponse();
+            gResponse.setStatusCode(statusCode);
+            gResponse.setJsonObj(jResult);
         }
-        return new OkHttpClient.Builder().build();
+        return gResponse;
     }
 
-    public JSONObject postAuthData(String uri, String authCode) throws Exception {
-        JSONObject jobj = null;
-        if (uri != null) {
-            Log.d(TAG, "postData() uri = " + uri);
-
-            OkHttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
-
-            Request request = new Request.Builder()
-                    .url(uri)
-                    .addHeader("code", authCode)
-                    .addHeader("client_id", LoginActivity.CLIENT_ID)
-                    .addHeader("redirect_uri", LoginActivity.REDIRECT_URI)
-                    .addHeader("grant_type", "authorization_code")
-                    .build();
-
-            Response response = httpclient.newCall(request).execute();
-            if (!response.isSuccessful()) throw new Exception("Unexpected code " + response);
-            jobj = new JSONObject(response.body().toString());
-            response.body().close();
-        }
-        return jobj;
-    }
-
-    public JSONObject requestJsonData(String uri, JSONObject obj, String token) throws Exception {
-        JSONObject jobj = null;
+    public ServerResponse postJsonData(String uri, JSONObject obj, String token) throws Exception {
+        Object jResult = null;
+        ServerResponse gResponse = null;
         if (uri != null && obj != null) {
+            HttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
+
             Log.d(TAG, "postJsonData() uri=" + uri + ", jsonObj=" + obj.toString());
+            HttpParams myParams = httpclient.getParams();
+            HttpConnectionParams.setConnectionTimeout(myParams, CONNECTION_TIMEOUT);
+            HttpConnectionParams.setSoTimeout(myParams, SOCKET_TIMEOUT);
 
-            OkHttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
+            HttpPost httppost = new HttpPost(uri);
+            httppost.setHeader("Authorization", "Bearer " + token.trim());
+            httppost.setHeader(HTTP.CONTENT_TYPE, "application/json");
 
-            RequestBody body = RequestBody.create(getMediaType(), obj.toString());
-            Request request = new Request.Builder()
-                    .url(uri)
-                    .addHeader("Authorization", "Bearer " + token.trim())
-                    .post(body)
-                    .build();
+            StringEntity se = new StringEntity(obj.toString(), HTTP.UTF_8);
+            se.setContentType("application/json");
+            httppost.setEntity(se);
 
-            Response response = httpclient.newCall(request).execute();
-            if (!response.isSuccessful()) throw new Exception("Unexpected code " + response);
-            jobj = new JSONObject(response.body().toString());
-            response.body().close();
+            HttpResponse response = httpclient.execute(httppost);
+
+            int statusCode = response.getStatusLine().getStatusCode();
+            String result;
+            if (response.getEntity() == null) {
+                Log.d(TAG, "Entity = null");
+                result = null;
+            } else {
+                result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            }
+
+            Log.d(TAG, "statusCode=" + statusCode + ", result=" + result);
+
+            if (null != result && result.length() > 0) {
+                Object jsonObj = new JSONTokener(result).nextValue();
+                if (jsonObj instanceof JSONObject) {
+                    jResult = (JSONObject)jsonObj;
+                } else if (jsonObj instanceof JSONArray) {
+                    jResult = (JSONArray)jsonObj;
+                }
+            }
+            gResponse = new ServerResponse();
+            gResponse.setStatusCode(statusCode);
+            gResponse.setJsonObj(jResult);
         }
-        return jobj;
+        return gResponse;
     }
 
-    public JSONObject requestJsonData(String uri, String token) throws Exception {
-        JSONObject jobj = null;
+    public ServerResponse getJsonData(String uri, String token) throws Exception {
+        Object jResult = null;
+        ServerResponse gResponse = null;
         if (uri != null) {
+            HttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
             Log.d(TAG, "postJsonData() uri=" + uri);
+            HttpParams myParams = httpclient.getParams();
+            HttpConnectionParams.setConnectionTimeout(myParams, CONNECTION_TIMEOUT);
+            HttpConnectionParams.setSoTimeout(myParams, SOCKET_TIMEOUT);
 
-            OkHttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
+            HttpGet httpGet = new HttpGet(uri);
 
-            Request request = new Request.Builder()
-                    .url(uri)
-                    .addHeader("Authorization", "Bearer " + token.trim())
-                    .build();
+            httpGet.setHeader("Authorization", "Bearer " + token.trim());
+            HttpResponse response = httpclient.execute(httpGet);
 
-            Response response = httpclient.newCall(request).execute();
-            if (!response.isSuccessful()) throw new Exception("Unexpected code " + response);
-            jobj = new JSONObject(response.body().toString());
-            response.body().close();
+            int statusCode = response.getStatusLine().getStatusCode();
+            String result;
+            if (response.getEntity() == null) {
+                Log.d(TAG, "Entity = null");
+                result = null;
+            } else {
+                result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            }
+
+            Log.d(TAG, "statusCode=" + statusCode + ", result=" + result);
+
+            //result = result.substring(result.indexOf("[")); //for hc team
+
+            if (null != result && result.length() > 0) {
+                Object jsonObj = new JSONTokener(result).nextValue();
+                if (jsonObj instanceof JSONObject) {
+                    jResult = (JSONObject)jsonObj;
+                } else if (jsonObj instanceof JSONArray) {
+                    jResult = (JSONArray)jsonObj;
+                }
+            }
+            gResponse = new ServerResponse();
+            gResponse.setStatusCode(statusCode);
+            gResponse.setJsonObj(jResult);
         }
-        return jobj;
+        return gResponse;
     }
 
-    private MediaType getMediaType(){
-        return MediaType.parse("application/json; charset=utf-8");
+    public ServerResponse putJsonData(String uri, JSONObject obj, String token) throws Exception {
+        Object jResult = null;
+        ServerResponse gResponse = null;
+        if (uri != null && obj != null) {
+            HttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
+            Log.d(TAG, "putJsonData() uri=" + uri + ", jsonObj=" + obj.toString());
+            HttpParams myParams = httpclient.getParams();
+            HttpConnectionParams.setConnectionTimeout(myParams, CONNECTION_TIMEOUT);
+            HttpConnectionParams.setSoTimeout(myParams, SOCKET_TIMEOUT);
+
+            HttpPutWithBody put = new HttpPutWithBody(uri);
+            put.setHeader(HTTP.CONTENT_TYPE, "application/json");
+
+            StringEntity se = new StringEntity(obj.toString(), HTTP.UTF_8);
+            se.setContentType("application/json");
+            put.setEntity(se);
+
+            HttpResponse response = httpclient.execute(put);
+            int statusCode = response.getStatusLine().getStatusCode();
+            //String result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            String result;
+            if (response.getEntity() == null) {
+                Log.d(TAG, "Entity = null");
+                result = null;
+            } else {
+                result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            }
+
+            Log.d(TAG, "statusCode=" + statusCode + ", result=" + result);
+
+            if (null != result && result.length() > 0) {
+                Object jsonObj = new JSONTokener(result).nextValue();
+                if (jsonObj instanceof JSONObject) {
+                    jResult = (JSONObject)jsonObj;
+                } else if (jsonObj instanceof JSONArray) {
+                    jResult = (JSONArray)jsonObj;
+                }
+            }
+            gResponse = new ServerResponse();
+            gResponse.setStatusCode(statusCode);
+            gResponse.setJsonObj(jResult);
+        }
+        return gResponse;
+    }
+
+    public static ServerResponse delJsonData(String uri, JSONObject obj) throws Exception {
+        Object jResult = null;
+        ServerResponse gResponse = null;
+        if (uri != null && obj != null) {
+            HttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
+            Log.d(TAG, "delJsonData() uri=" + uri + ", jsonObj=" + obj.toString());
+            HttpParams myParams = httpclient.getParams();
+            HttpConnectionParams.setConnectionTimeout(myParams, CONNECTION_TIMEOUT);
+            HttpConnectionParams.setSoTimeout(myParams, SOCKET_TIMEOUT);
+
+            HttpDeleteWithBody delete = new HttpDeleteWithBody(uri);
+            delete.setHeader(HTTP.CONTENT_TYPE, "application/json");
+
+            StringEntity se = new StringEntity(obj.toString(), HTTP.UTF_8);
+            se.setContentType("application/json");
+            delete.setEntity(se);
+
+            HttpResponse response = httpclient.execute(delete);
+            int statusCode = response.getStatusLine().getStatusCode();
+            //String result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            String result;
+            if (response.getEntity() == null) {
+                Log.d(TAG, "Entity = null");
+                result = null;
+            } else {
+                result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            }
+
+            Log.d(TAG, "statusCode=" + statusCode + ", result=" + result);
+
+            if (null != result && result.length() > 0) {
+                Object jsonObj = new JSONTokener(result).nextValue();
+                if (jsonObj instanceof JSONObject) {
+                    jResult = (JSONObject)jsonObj;
+                } else if (jsonObj instanceof JSONArray) {
+                    jResult = (JSONArray)jsonObj;
+                }
+            }
+            gResponse = new ServerResponse();
+            gResponse.setStatusCode(statusCode);
+            gResponse.setJsonObj(jResult);
+        }
+        return gResponse;
+    }
+
+    public static ServerResponse getJsonData(String uri, JSONObject obj) throws Exception {
+        Object jResult = null;
+        ServerResponse gResponse = null;
+        if (uri != null && obj != null) {
+            HttpClient httpclient = getHttpClient((uri.indexOf("https://") == 0) ? true : false);
+            Log.d(TAG, "getJsonData() uri=" + uri + ", jsonObj=" + obj.toString());
+            HttpParams myParams = httpclient.getParams();
+            HttpConnectionParams.setConnectionTimeout(myParams, CONNECTION_TIMEOUT);
+            HttpConnectionParams.setSoTimeout(myParams, SOCKET_TIMEOUT);
+
+            HttpGetWithBody get = new HttpGetWithBody(uri);
+            get.setHeader(HTTP.CONTENT_TYPE, "application/json");
+
+            StringEntity se = new StringEntity(obj.toString(), HTTP.UTF_8);
+            se.setContentType("application/json");
+            get.setEntity(se);
+
+            HttpResponse response = httpclient.execute(get);
+            int statusCode = response.getStatusLine().getStatusCode();
+            //String result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            String result;
+            if (response.getEntity() == null) {
+                Log.d(TAG, "Entity = null");
+                result = null;
+            } else {
+                result = EntityUtils.toString(response.getEntity(), HTTP.UTF_8);
+            }
+
+            Log.d(TAG, "statusCode=" + statusCode + ", result=" + result);
+
+            if (null != result && result.length() > 0) {
+                Object jsonObj = new JSONTokener(result).nextValue();
+                if (jsonObj instanceof JSONObject) {
+                    jResult = (JSONObject)jsonObj;
+                } else if (jsonObj instanceof JSONArray) {
+                    jResult = (JSONArray)jsonObj;
+                }
+            }
+
+            gResponse = new ServerResponse();
+            gResponse.setStatusCode(statusCode);
+            gResponse.setJsonObj(jResult);
+        }
+        return gResponse;
     }
 }
 
