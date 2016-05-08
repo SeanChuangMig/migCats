@@ -4,13 +4,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import org.apache.http.HttpStatus;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONObject;
-
-import java.util.ArrayList;
-import java.util.List;
-
 
 /**
  * Created by seanchuang on 5/5/16.
@@ -19,6 +13,7 @@ public class HttpTask extends AsyncTask<String, Void, String> {
     public enum HTTP_TASK {
         AUTH, TOKEN, PROFILE, FRIEND, CREATE_POST, INVITE, BILLING
     }
+
     private static String TAG = "HttpTask";
     private MainActivity mActivity;
     private HTTP_TASK mTask;
@@ -43,15 +38,12 @@ public class HttpTask extends AsyncTask<String, Void, String> {
     @Override
     protected void onPostExecute(String result) {
         Log.i(TAG, result);
-        switch(mTask) {
-            case TOKEN:
-//                mActivity.setToken(result);
-                break;
+        switch (mTask) {
             case PROFILE:
-                mActivity.setProfile(result);
+                mActivity.showProfile(result);
                 break;
             case FRIEND:
-//                mActivity.showFriend(result);
+                mActivity.showFriends(result);
                 break;
             case CREATE_POST:
 //                mActivity.showCreatePost(result);
@@ -67,34 +59,13 @@ public class HttpTask extends AsyncTask<String, Void, String> {
 
     protected String doInBackground(String... strUrlFile) {
         String result = "";
-        switch(mTask) {
+        switch (mTask) {
             case AUTH: {
                 Log.e(TAG, "Request AUTH");
                 break;
             }
             case TOKEN: {
                 Log.e(TAG, "Request TOKEN");
-//                NetworkManager networkManager = new NetworkManager();
-//                try {
-//                    List<NameValuePair> nameValuePair = new ArrayList<NameValuePair>();
-//                    nameValuePair.add(new BasicNameValuePair("code", mActivity.getAuthCode().trim()));
-//                    nameValuePair.add(new BasicNameValuePair("client_id", LoginActivity.CLIENT_ID));
-//                    nameValuePair.add(new BasicNameValuePair("redirect_uri", LoginActivity.REDIRECT_URI));
-//                    nameValuePair.add(new BasicNameValuePair("grant_type", "authorization_code"));
-//                    ServerResponse response = networkManager.postData("https://oauth.mig.me/oauth/token", nameValuePair);
-//                    if (response.getStatusCode() == HttpStatus.SC_OK) {
-//                        Log.d(TAG, "OK");
-//                        Log.d(TAG, response.getJsonObj().toString());
-//                        if(response.getJsonObj() instanceof JSONObject) {
-//                            JSONObject jObj = (JSONObject) response.getJsonObj();
-//                            result = jObj.getString("access_token");
-//                        }
-//                    } else {
-//                        Log.d(TAG, "NOT OK");
-//                    }
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
                 break;
             }
             case PROFILE: {
@@ -105,7 +76,7 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                     if (response.getStatusCode() == HttpStatus.SC_OK) {
                         Log.d(TAG, "OK");
                         Log.d(TAG, response.getJsonObj().toString());
-                        if(response.getJsonObj() instanceof JSONObject) {
+                        if (response.getJsonObj() instanceof JSONObject) {
                             JSONObject jObj = (JSONObject) response.getJsonObj();
                             result = jObj.toString();
                         }
@@ -121,11 +92,11 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                 Log.e(TAG, "Request FRIEND");
                 NetworkManager networkManager = new NetworkManager();
                 try {
-                    ServerResponse response = networkManager.getJsonData("https://mig.me/datasvc/API/user/friends?limit=-1&offset=0", mToken.trim());
+                    ServerResponse response = networkManager.getJsonData("https://mig.me/datasvc/API/user/friends?limit=10&offset=0", mToken.trim());
                     if (response.getStatusCode() == HttpStatus.SC_OK) {
                         Log.d(TAG, "OK");
                         Log.d(TAG, response.getJsonObj().toString());
-                        if(response.getJsonObj() instanceof JSONObject) {
+                        if (response.getJsonObj() instanceof JSONObject) {
                             JSONObject jObj = (JSONObject) response.getJsonObj();
                             result = jObj.toString();
                         }
@@ -157,7 +128,7 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                     if (response.getStatusCode() == HttpStatus.SC_OK) {
                         Log.d(TAG, "OK");
                         Log.d(TAG, response.getJsonObj().toString());
-                        if(response.getJsonObj() instanceof JSONObject) {
+                        if (response.getJsonObj() instanceof JSONObject) {
                             JSONObject resJObj = (JSONObject) response.getJsonObj();
                             result = resJObj.toString();
                         }
@@ -184,7 +155,7 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                     if (response.getStatusCode() == HttpStatus.SC_OK) {
                         Log.d(TAG, "OK");
                         Log.d(TAG, response.getJsonObj().toString());
-                        if(response.getJsonObj() instanceof JSONObject) {
+                        if (response.getJsonObj() instanceof JSONObject) {
                             JSONObject resJObj = (JSONObject) response.getJsonObj();
                             result = resJObj.toString();
                         }
@@ -210,7 +181,7 @@ public class HttpTask extends AsyncTask<String, Void, String> {
                     if (response.getStatusCode() == HttpStatus.SC_OK) {
                         Log.d(TAG, "OK");
                         Log.d(TAG, response.getJsonObj().toString());
-                        if(response.getJsonObj() instanceof JSONObject) {
+                        if (response.getJsonObj() instanceof JSONObject) {
                             JSONObject resJObj = (JSONObject) response.getJsonObj();
                             result = resJObj.toString();
                         }

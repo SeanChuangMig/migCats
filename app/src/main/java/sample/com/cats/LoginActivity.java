@@ -31,8 +31,6 @@ import sample.com.cats.HttpTask.HTTP_TASK;
 public class LoginActivity extends Activity {
     private static final String TAG = "LoginActivity";
 
-    public static int PORT = 34567;
-
     public static final String MyPREFERENCES = "MyPrefs" ;
     public static final String MyTOKEN = "MyToken";
 
@@ -100,7 +98,6 @@ public class LoginActivity extends Activity {
 
     private void toMainActivity(){
         Intent intent = new Intent(this, MainActivity.class);
-        intent.putExtra(MyTOKEN ,mToken);
         startActivity(intent);
     }
 
@@ -111,21 +108,6 @@ public class LoginActivity extends Activity {
 
     private void writeTokenToSharePreference(){
         sharedpreferences.edit().putString(MyTOKEN, mToken).commit();
-    }
-
-    public void showProfile(String data) {
-        Message msg = mHandler.obtainMessage(HTTP_TASK.PROFILE.ordinal(), data);
-        mHandler.sendMessage(msg);
-    }
-
-    public void showFriend(String data) {
-        Message msg =  mHandler.obtainMessage(HTTP_TASK.FRIEND.ordinal(), data);
-        mHandler.sendMessage(msg);
-    }
-
-    public void showCreatePost(String data) {
-        Message msg =  mHandler.obtainMessage(HTTP_TASK.CREATE_POST.ordinal(), data);
-        mHandler.sendMessage(msg);
     }
 
     public void showInvite(String data) {
@@ -148,7 +130,6 @@ public class LoginActivity extends Activity {
                 break;
             case TOKEN:
                 writeTokenToSharePreference();
-//                Toast.makeText(LoginActivity.this, "Get token", Toast.LENGTH_SHORT).show();
                 toMainActivity();
                 break;
             case PROFILE:
