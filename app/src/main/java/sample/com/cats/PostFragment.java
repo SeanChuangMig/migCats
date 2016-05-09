@@ -31,7 +31,8 @@ public class PostFragment extends Fragment {
         rootView.findViewById(R.id.post_Button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                new postMigboTask().executeOnExecutor(Executors.newCachedThreadPool());
+                if (mToken.length() > 0)
+                    new postMigboTask().executeOnExecutor(Executors.newCachedThreadPool());
             }
         });
 

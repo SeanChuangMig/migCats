@@ -10,11 +10,6 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.concurrent.Executors;
-
 
 public class MainActivity extends FragmentActivity {
     private static final String TAG = "MainActivity";
@@ -33,10 +28,7 @@ public class MainActivity extends FragmentActivity {
     private ProfileFragment mProfileFragment;
     private FriendFragment mFriendFragment;
     private PostFragment mPostFragment;
-    private InviteFragment mInviteFragment;
-
-    private JSONObject mProfileData;
-    private JSONObject mFriendsData;
+    private OtherFragment mOtherFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,13 +43,12 @@ public class MainActivity extends FragmentActivity {
         }
 
         mCatFragment = new CatFragment(type);
-        mProfileFragment = new ProfileFragment();
-        mFriendFragment = new FriendFragment();
+        mProfileFragment = new ProfileFragment(mToken);
+        mFriendFragment = new FriendFragment(mToken);
         mPostFragment = new PostFragment(mToken);
-        mInviteFragment = new InviteFragment(mToken);
+        mOtherFragment = new OtherFragment(mToken);
 
-        findViews();
-        requestData();
+        initViews();
     }
 
     private void checkIfHaveToken() {
@@ -65,41 +56,19 @@ public class MainActivity extends FragmentActivity {
                 .getString(LoginActivity.MyTOKEN, "");
     }
 
-    private Boolean hasToke() {
-        return (mToken != null) ? true : false;
-    }
-
-    private void requestData() {
-        if (!hasToke())
-            return;
-
-        new HttpTask(MainActivity.this, HttpTask.HTTP_TASK.PROFILE, mToken).executeOnExecutor(Executors.newCachedThreadPool());
-        new HttpTask(MainActivity.this, HttpTask.HTTP_TASK.FRIEND, mToken).executeOnExecutor(Executors.newCachedThreadPool());
-    }
-
     @Override
     public void onStart() {
         super.onStart();
         checkIfHaveRuntimePermission();
+        selectItem(0);
     }
 
-    public void showProfile(String profile) {
-        try {
-            mProfileData = new JSONObject(profile);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
     }
 
-    public void showFriends(String friends) {
-        try {
-            mFriendsData = new JSONObject(friends);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void findViews() {
+    private void initViews() {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.left_drawer);
         mNavigationDrawerItemTitles = getResources().getStringArray(R.array.navigation_drawer_items_array);
@@ -111,7 +80,6 @@ public class MainActivity extends FragmentActivity {
                 selectItem(position);
             }
         });
-        selectItem(0);
     }
 
     private void selectItem(int position) {
@@ -122,17 +90,15 @@ public class MainActivity extends FragmentActivity {
                 break;
             case 1:
                 fragment = mProfileFragment;
-                mProfileFragment.setProfile(mProfileData);
                 break;
             case 2:
                 fragment = mFriendFragment;
-                mFriendFragment.setFriends(mFriendsData);
                 break;
             case 3:
                 fragment = mPostFragment;
                 break;
             case 4:
-                fragment = mInviteFragment;
+                fragment = mOtherFragment;
                 break;
             default:
                 break;

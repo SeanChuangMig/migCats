@@ -40,10 +40,10 @@ public class HttpTask extends AsyncTask<String, Void, String> {
         Log.i(TAG, result);
         switch (mTask) {
             case PROFILE:
-                mActivity.showProfile(result);
+//                mActivity.showProfile(result);
                 break;
             case FRIEND:
-                mActivity.showFriends(result);
+//                mActivity.showFriends(result);
                 break;
             case CREATE_POST:
 //                mActivity.showCreatePost(result);
