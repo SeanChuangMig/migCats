@@ -1,124 +1,125 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-              android:orientation="vertical"
-              android:padding="15dp">
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="15dp">
 
-    <TextView
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="5dp"
-        android:text="Inviting Friends API"
-        android:textSize="26dp"/>
+        android:orientation="vertical"
+        android:layout_height="wrap_content">
 
-    <RadioGroup
-        android:id="@+id/invite_RadioGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:text="Inviting Friends API"
+            android:textSize="26dp"/>
 
-        <RadioButton
-            android:id="@+id/migme_RadioGroup"
+        <RadioGroup
+            android:id="@+id/invite_RadioGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true"
-            android:padding="3dp"
-            android:text="Migme"/>
+            android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/mig_games_RadioGroup"
+            <RadioButton
+                android:id="@+id/migme_RadioGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="Migme"/>
+
+            <RadioButton
+                android:id="@+id/mig_games_RadioGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mig Games"/>
+
+        </RadioGroup>
+
+        <EditText
+            android:id="@+id/mail_EditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Enter email"
+            android:padding="5dp"
+            android:textSize="10dp"/>
+
+        <Button
+            android:id="@+id/invite_Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="3dp"
-            android:text="Mig Games"/>
-
-    </RadioGroup>
-
-    <EditText
-        android:id="@+id/mail_EditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Enter email"
-        android:padding="5dp"
-        android:textSize="20dp"/>
-
-    <Button
-        android:id="@+id/invite_Button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="10dp"
-        android:padding="5dp"
-        android:text="Invite friend"
-        android:textSize="20dp"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10dp"
+            android:padding="5dp"
+            android:text="Invite friend"
+            android:textSize="20dp"/>
 
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="30dp"
-        android:padding="5dp"
-        android:text="Billing API"
-        android:textSize="26dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:padding="5dp"
+            android:text="Billing API"
+            android:textSize="26dp"/>
 
-    <RadioGroup
-        android:id="@+id/currency_RadioGroup"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <RadioButton
-            android:id="@+id/usd_RadioGroup"
+        <RadioGroup
+            android:id="@+id/currency_RadioGroup"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:checked="true"
-            android:padding="3dp"
-            android:text="USD"/>
+            android:orientation="vertical">
 
-        <RadioButton
-            android:id="@+id/sgd_RadioGroup"
+            <RadioButton
+                android:id="@+id/usd_RadioGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:text="USD"/>
+
+            <RadioButton
+                android:id="@+id/sgd_RadioGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="SGD"/>
+
+            <RadioButton
+                android:id="@+id/aud_RadioGroup"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AUD"/>
+
+        </RadioGroup>
+
+
+        <EditText
+            android:id="@+id/billing_EditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Value to deduct from user"
+            android:padding="5dp"
+            android:singleLine="true"
+            android:textSize="20dp"/>
+
+        <EditText
+            android:id="@+id/description_EditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Bill description"
+            android:padding="5dp"
+            android:singleLine="true"
+            android:textSize="20dp"/>
+
+        <Button
+            android:id="@+id/deduct_Button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:padding="3dp"
-            android:text="SGD"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10dp"
+            android:padding="5dp"
+            android:text="Deduct"
+            android:textSize="20dp"/>
+    </LinearLayout>
 
-        <RadioButton
-            android:id="@+id/aud_RadioGroup"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:padding="3dp"
-            android:text="AUD"/>
-
-    </RadioGroup>
-
-
-    <EditText
-        android:id="@+id/billing_EditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Value to deduct from user"
-        android:padding="5dp"
-        android:singleLine="true"
-        android:textSize="20dp"/>
-
-    <EditText
-        android:id="@+id/description_EditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Bill description"
-        android:padding="5dp"
-        android:singleLine="true"
-        android:textSize="20dp"/>
-
-    <Button
-        android:id="@+id/deduct_Button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_margin="10dp"
-        android:padding="5dp"
-        android:text="Deduct"
-        android:textSize="20dp"/>
-
-</LinearLayout>
+</ScrollView>

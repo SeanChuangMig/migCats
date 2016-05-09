@@ -1,14 +1,21 @@
 package sample.com.cats;
 
 import android.os.Bundle;
+import android.support.v4.app.ActionBarDrawerToggle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
+import android.view.KeyEvent;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 
 public class MainActivity extends FragmentActivity {
@@ -23,12 +30,16 @@ public class MainActivity extends FragmentActivity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private DrawerItemCustomAdapter mDrawerAdapter;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     private Fragment mCatFragment;
     private ProfileFragment mProfileFragment;
     private FriendFragment mFriendFragment;
     private PostFragment mPostFragment;
     private OtherFragment mOtherFragment;
+
+    private Integer currentPosition;
+    private LinkedList<Integer> mFragmentIndexStack = new LinkedList<Integer>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +52,8 @@ public class MainActivity extends FragmentActivity {
         if (type == null) {
             type = "";
         }
+
+        Log.e(TAG, "My Type: " + type);
 
         mCatFragment = new CatFragment(type);
         mProfileFragment = new ProfileFragment(mToken);
@@ -60,12 +73,15 @@ public class MainActivity extends FragmentActivity {
     public void onStart() {
         super.onStart();
         checkIfHaveRuntimePermission();
-        selectItem(0);
+        selectItem(0, false);
     }
 
     @Override
     public void onBackPressed() {
-        moveTaskToBack(true);
+        if (mFragmentIndexStack.size() > 1)
+            selectItem(mFragmentIndexStack.pop(), true);
+        else
+            moveTaskToBack(true);
     }
 
     private void initViews() {
@@ -77,14 +93,46 @@ public class MainActivity extends FragmentActivity {
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                selectItem(position);
+                selectItem(position, false);
             }
         });
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
+                R.drawable.ic_launcher, R.string.drawer_open, R.string.drawer_close) {
+
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+            }
+
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+            }
+        };
+
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+
+        getActionBar().setDisplayHomeAsUpEnabled(true);
+        getActionBar().setHomeButtonEnabled(true);
+
     }
 
-    private void selectItem(int position) {
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    private void selectItem(int position, Boolean pressBack) {
+        if (mFragmentIndexStack.size() > 0 && mFragmentIndexStack.get(0).equals(position))
+            return;
+
+        if(!pressBack)
+            mFragmentIndexStack.push(position);
+
+        int targetView = mFragmentIndexStack.get(0);
         Fragment fragment = null;
-        switch (position) {
+        switch (targetView) {
             case 0:
                 fragment = mCatFragment;
                 break;
@@ -105,13 +153,15 @@ public class MainActivity extends FragmentActivity {
         }
 
         if (fragment != null) {
+
             FragmentManager fragmentManager = getSupportFragmentManager();
             fragmentManager.beginTransaction().replace(R.id.content_frame, fragment).commit();
 
-            mDrawerList.setItemChecked(position, true);
-            mDrawerList.setSelection(position);
-            getActionBar().setTitle(mNavigationDrawerItemTitles[position]);
+            mDrawerList.setItemChecked(targetView, true);
+            mDrawerList.setSelection(targetView);
+            getActionBar().setTitle(mNavigationDrawerItemTitles[targetView]);
             mDrawerLayout.closeDrawer(mDrawerList);
+
 
         } else {
             Log.e("MainActivity", "Error in creating fragment");
