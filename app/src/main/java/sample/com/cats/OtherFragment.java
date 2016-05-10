@@ -7,6 +7,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
 
@@ -20,6 +21,7 @@ import java.util.concurrent.Executors;
  */
 public class OtherFragment extends Fragment {
     private static final String TAG = "OtherFragment";
+    private static final String DEFAULT_NUMBER_OF_TRANSACTIONS = "10";
 
     private String mToken;
 
@@ -42,7 +44,7 @@ public class OtherFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_other, container, false);
-        mInviteRadioGroup= (RadioGroup) rootView.findViewById(R.id.invite_RadioGroup);
+        mInviteRadioGroup = (RadioGroup) rootView.findViewById(R.id.invite_RadioGroup);
         mMailEditText = (EditText) rootView.findViewById(R.id.mail_EditText);
         rootView.findViewById(R.id.invite_Button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -68,10 +70,18 @@ public class OtherFragment extends Fragment {
             }
         });
 
+        rootView.findViewById(R.id.locker_Button).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (mToken.length() > 0)
+                    new lockerTask().executeOnExecutor(Executors.newCachedThreadPool());
+            }
+        });
+
         return rootView;
     }
 
-    private String getInviteType(){
+    private String getInviteType() {
         String type = "";
         switch (mInviteRadioGroup.getCheckedRadioButtonId()) {
             case R.id.migme_RadioGroup:
@@ -143,7 +153,6 @@ public class OtherFragment extends Fragment {
     }
 
     public class billingTask extends AsyncTask<String, Void, String> {
-
         @Override
         protected String doInBackground(String... params) {
             String result = "";
@@ -176,6 +185,37 @@ public class OtherFragment extends Fragment {
         @Override
         protected void onPostExecute(String result) {
             Log.e(TAG, "Get billing result: " + result);
+        }
+    }
+
+    public class lockerTask extends AsyncTask<String, Void, String> {
+        @Override
+        protected String doInBackground(String... params) {
+            String result = "";
+            NetworkManager networkManager = new NetworkManager();
+            try {
+                ServerResponse response = networkManager
+                        .getJsonData("https://api.mig.me/cxb/transactions?limit=" + DEFAULT_NUMBER_OF_TRANSACTIONS, mToken.trim());
+                if (response.getStatusCode() == HttpStatus.SC_OK) {
+                    Log.d(TAG, "OK");
+                    Log.d(TAG, response.getJsonObj().toString());
+                    if (response.getJsonObj() instanceof JSONObject) {
+                        JSONObject resJObj = (JSONObject) response.getJsonObj();
+                        result = resJObj.toString();
+                    }
+                } else {
+                    Log.d(TAG, "NOT OK");
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return result;
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            Log.e(TAG, "Get locker result: " + result);
         }
     }
 }

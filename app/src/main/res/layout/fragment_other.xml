@@ -3,12 +3,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
-            android:padding="15dp">
+            android:padding="10dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:orientation="vertical"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
 
         <TextView
             android:layout_width="match_parent"
@@ -42,8 +42,8 @@
             android:id="@+id/mail_EditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:hint="Enter email"
-            android:padding="5dp"
             android:textSize="16dp"/>
 
         <Button
@@ -52,7 +52,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_margin="10dp"
-            android:padding="5dp"
+            android:padding="10dp"
             android:text="Invite friend"
             android:textSize="16dp"/>
 
@@ -97,8 +97,8 @@
             android:id="@+id/billing_EditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:hint="Value to deduct from user"
-            android:padding="5dp"
             android:singleLine="true"
             android:textSize="16dp"/>
 
@@ -106,8 +106,8 @@
             android:id="@+id/description_EditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
             android:hint="Bill description"
-            android:padding="5dp"
             android:singleLine="true"
             android:textSize="16dp"/>
 
@@ -117,9 +117,28 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_margin="10dp"
-            android:padding="5dp"
+            android:padding="10dp"
             android:text="Deduct"
             android:textSize="16dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="30dp"
+            android:padding="5dp"
+            android:text="Locker API"
+            android:textSize="26dp"/>
+
+        <Button
+            android:id="@+id/locker_Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_margin="10dp"
+            android:padding="10dp"
+            android:text="Get the transaction"
+            android:textSize="16dp"/>
+
     </LinearLayout>
 
 </ScrollView>

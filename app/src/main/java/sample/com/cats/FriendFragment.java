@@ -29,6 +29,7 @@ import java.util.concurrent.Executors;
  */
 public class FriendFragment extends Fragment {
     private static final String TAG = "FriendFragment";
+    private static final String DEFAULT_NUMBER_OF_FRIEND = "10";
     private static final String INVITE_TO_MIGME = "6";
     private static final String INVITE_TO_MIGGAME = "14";
 
@@ -158,7 +159,9 @@ public class FriendFragment extends Fragment {
             String result = "";
             NetworkManager networkManager = new NetworkManager();
             try {
-                ServerResponse response = networkManager.getJsonData("https://mig.me/datasvc/API/user/friends?limit=10&offset=0", mToken.trim());
+                ServerResponse response = networkManager
+                        .getJsonData("https://mig.me/datasvc/API/user/friends?limit=" + DEFAULT_NUMBER_OF_FRIEND + "&offset=0"
+                                , mToken.trim());
                 if (response.getStatusCode() == HttpStatus.SC_OK) {
                     Log.d(TAG, "OK");
                     Log.d(TAG, response.getJsonObj().toString());
