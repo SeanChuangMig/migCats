@@ -1,5 +1,8 @@
 package sample.com.cats;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -7,12 +10,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.http.HttpStatus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.Executors;
 
 /**
@@ -21,6 +28,7 @@ import java.util.concurrent.Executors;
 public class ProfileFragment extends Fragment {
     private static final String TAG = "ProfileFragment";
     private String mToken;
+    private ImageView mImageView;
     private TextView mNameTextView;
     private TextView mCountyTextView;
     private TextView mLevelTextView;
@@ -32,7 +40,6 @@ public class ProfileFragment extends Fragment {
     private TextView mMailTextView;
 
 
-
     private JSONObject mProfileData;
 
     public ProfileFragment(String token) {
@@ -42,6 +49,7 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_profile, container, false);
+        mImageView = (ImageView) rootView.findViewById(R.id.avatar_ImageView);
         mNameTextView = (TextView) rootView.findViewById(R.id.name_TextView);
         mCountyTextView = (TextView) rootView.findViewById(R.id.country_TextView);
         mLevelTextView = (TextView) rootView.findViewById(R.id.level_TextView);
@@ -69,6 +77,7 @@ public class ProfileFragment extends Fragment {
     private void updateView() {
         try {
             JSONObject data = mProfileData.getJSONObject("data");
+            new DownloadImageTask().executeOnExecutor(Executors.newCachedThreadPool(), data.getString("avatarPictureUrl"));
             mNameTextView.setText(data.getString("username"));
             mCountyTextView.setText(data.getString("country"));
             mLevelTextView.setText(data.getString("migLevel"));
@@ -82,7 +91,6 @@ public class ProfileFragment extends Fragment {
             e.printStackTrace();
         }
     }
-
 
     public class profileTask extends AsyncTask<String, Void, String> {
 
@@ -110,14 +118,39 @@ public class ProfileFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String result) {
-            Log.e(TAG, "Get invite result: " + result);
+            Log.d(TAG, "Get profile result: " + result);
             try {
                 mProfileData = new JSONObject(result);
-                Log.e(TAG, "profile: " + mProfileData.toString());
-                updateView();
+                if (mProfileData.getJSONObject("error").getInt("errno") == 0) {
+                    Toast.makeText(getActivity(), "Request profile success", Toast.LENGTH_SHORT).show();
+                    updateView();
+                } else {
+                    Toast.makeText(getActivity(), "Request profile failed", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Request profile failed");
+                }
+
+
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+    private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+        protected Bitmap doInBackground(String... urls) {
+            Bitmap bmp = null;
+            try {
+                URL url = new URL(urls[0]);
+                bmp = BitmapFactory.decodeStream(url.openConnection().getInputStream());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return bmp;
+        }
+
+        protected void onPostExecute(Bitmap result) {
+            if (result != null)
+                mImageView.setImageBitmap(result);
         }
     }
 }
