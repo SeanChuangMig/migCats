@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:hint="Enter email"
             android:padding="5dp"
-            android:textSize="10dp"/>
+            android:textSize="16dp"/>
 
         <Button
             android:id="@+id/invite_Button"
@@ -54,7 +54,7 @@
             android:layout_margin="10dp"
             android:padding="5dp"
             android:text="Invite friend"
-            android:textSize="20dp"/>
+            android:textSize="16dp"/>
 
 
         <TextView
@@ -100,7 +100,7 @@
             android:hint="Value to deduct from user"
             android:padding="5dp"
             android:singleLine="true"
-            android:textSize="20dp"/>
+            android:textSize="16dp"/>
 
         <EditText
             android:id="@+id/description_EditText"
@@ -109,7 +109,7 @@
             android:hint="Bill description"
             android:padding="5dp"
             android:singleLine="true"
-            android:textSize="20dp"/>
+            android:textSize="16dp"/>
 
         <Button
             android:id="@+id/deduct_Button"
@@ -119,7 +119,7 @@
             android:layout_margin="10dp"
             android:padding="5dp"
             android:text="Deduct"
-            android:textSize="20dp"/>
+            android:textSize="16dp"/>
     </LinearLayout>
 
 </ScrollView>
