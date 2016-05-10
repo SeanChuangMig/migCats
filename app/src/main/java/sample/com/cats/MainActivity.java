@@ -7,15 +7,12 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v4.app.FragmentManager;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 
 
 public class MainActivity extends FragmentActivity {
@@ -35,10 +32,9 @@ public class MainActivity extends FragmentActivity {
     private Fragment mCatFragment;
     private ProfileFragment mProfileFragment;
     private FriendFragment mFriendFragment;
-    private PostFragment mPostFragment;
+//    private PostFragment mPostFragment;
     private OtherFragment mOtherFragment;
 
-    private Integer currentPosition;
     private LinkedList<Integer> mFragmentIndexStack = new LinkedList<Integer>();
 
     @Override
@@ -58,7 +54,7 @@ public class MainActivity extends FragmentActivity {
         mCatFragment = new CatFragment(type);
         mProfileFragment = new ProfileFragment(mToken);
         mFriendFragment = new FriendFragment(mToken);
-        mPostFragment = new PostFragment(mToken);
+//        mPostFragment = new PostFragment(mToken);
         mOtherFragment = new OtherFragment(mToken);
 
         initViews();
@@ -143,9 +139,6 @@ public class MainActivity extends FragmentActivity {
                 fragment = mFriendFragment;
                 break;
             case 3:
-                fragment = mPostFragment;
-                break;
-            case 4:
                 fragment = mOtherFragment;
                 break;
             default:
@@ -161,8 +154,6 @@ public class MainActivity extends FragmentActivity {
             mDrawerList.setSelection(targetView);
             getActionBar().setTitle(mNavigationDrawerItemTitles[targetView]);
             mDrawerLayout.closeDrawer(mDrawerList);
-
-
         } else {
             Log.e("MainActivity", "Error in creating fragment");
         }

@@ -24,6 +24,14 @@ public class ProfileFragment extends Fragment {
     private TextView mNameTextView;
     private TextView mCountyTextView;
     private TextView mLevelTextView;
+    private TextView mRegisterTextView;
+    private TextView mMibBotImageTextView;
+    private TextView mFriendsTextView;
+    private TextView mFollowerTextView;
+    private TextView mFollowingTextView;
+    private TextView mMailTextView;
+
+
 
     private JSONObject mProfileData;
 
@@ -37,6 +45,13 @@ public class ProfileFragment extends Fragment {
         mNameTextView = (TextView) rootView.findViewById(R.id.name_TextView);
         mCountyTextView = (TextView) rootView.findViewById(R.id.country_TextView);
         mLevelTextView = (TextView) rootView.findViewById(R.id.level_TextView);
+        mRegisterTextView = (TextView) rootView.findViewById(R.id.register_TextView);
+        mMibBotImageTextView = (TextView) rootView.findViewById(R.id.migbot_image_TextView);
+        mFriendsTextView = (TextView) rootView.findViewById(R.id.friend_TextView);
+        mFollowerTextView = (TextView) rootView.findViewById(R.id.follwer_TextView);
+        mFollowingTextView = (TextView) rootView.findViewById(R.id.following_TextView);
+        mMailTextView = (TextView) rootView.findViewById(R.id.email_TextView);
+
         return rootView;
     }
 
@@ -57,6 +72,12 @@ public class ProfileFragment extends Fragment {
             mNameTextView.setText(data.getString("username"));
             mCountyTextView.setText(data.getString("country"));
             mLevelTextView.setText(data.getString("migLevel"));
+            mRegisterTextView.setText(data.getString("dateRegistered"));
+            mMibBotImageTextView.setText(data.getString("migBotImage"));
+            mFriendsTextView.setText(data.getString("numOfFriends"));
+            mFollowerTextView.setText(data.getString("numOfFollowers"));
+            mFollowingTextView.setText(data.getString("numOfFollowing"));
+            mMailTextView.setText(data.getString("externalEmail"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -92,6 +113,7 @@ public class ProfileFragment extends Fragment {
             Log.e(TAG, "Get invite result: " + result);
             try {
                 mProfileData = new JSONObject(result);
+                Log.e(TAG, "profile: " + mProfileData.toString());
                 updateView();
             } catch (JSONException e) {
                 e.printStackTrace();
