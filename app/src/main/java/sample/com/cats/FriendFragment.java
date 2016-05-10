@@ -206,14 +206,12 @@ public class FriendFragment extends Fragment {
                 JSONObject jObj = new JSONObject();
                 JSONObject destinationsObj = new JSONObject();
 
-//                for (int i = 0; i < mFriends.size(); i++)
-//                    if (mInvitedFriend.get(i) == true)
-//                        if (params[0].equals(INVITE_TO_MIGME))
-//                            destinationsObj.put(mFriends.get(i).getMail(), "referralIdA");
-//                        else
-//                            destinationsObj.put(mFriends.get(i).getName(), "referralIdA");
-
-                destinationsObj.put("sean.c@mig.me", "referralIdA");
+                for (int i = 0; i < mFriends.size(); i++)
+                    if (mInvitedFriend.get(i) == true)
+                        if (params[0].equals(INVITE_TO_MIGME))
+                            destinationsObj.put(mFriends.get(i).getMail(), "referralIdA");
+                        else
+                            destinationsObj.put(mFriends.get(i).getName(), "referralIdA");
 
                 jObj.put("destinations", destinationsObj);
                 jObj.put("invitationEmailType", params[0]);

@@ -10,8 +10,10 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 
 import org.apache.http.HttpStatus;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.concurrent.Executors;
@@ -149,6 +151,17 @@ public class OtherFragment extends Fragment {
         @Override
         protected void onPostExecute(String result) {
             Log.e(TAG, "Get invite result: " + result);
+            try {
+                JSONObject jobj = new JSONObject(result);
+                if (jobj.getString("data").equals("ok"))
+                    Toast.makeText(getActivity(), "Invite success", Toast.LENGTH_SHORT).show();
+                else {
+                    Toast.makeText(getActivity(), "Invite failed", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Invite failed");
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -185,6 +198,17 @@ public class OtherFragment extends Fragment {
         @Override
         protected void onPostExecute(String result) {
             Log.e(TAG, "Get billing result: " + result);
+            try {
+                JSONObject jobj = new JSONObject(result);
+                if (jobj.getJSONObject("error").getInt("errno") == 0)
+                    Toast.makeText(getActivity(), "Deduct success", Toast.LENGTH_SHORT).show();
+                else {
+                    Toast.makeText(getActivity(), "Deduct failed", Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Deduct failed");
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -216,6 +240,17 @@ public class OtherFragment extends Fragment {
         @Override
         protected void onPostExecute(String result) {
             Log.e(TAG, "Get locker result: " + result);
+//            try {
+//                JSONObject jobj = new JSONObject(result);
+//                if (jobj.getJSONObject("error").getInt("errno") == 0)
+//                    Toast.makeText(getActivity(), "Deduct success", Toast.LENGTH_SHORT).show();
+//                else {
+//                    Toast.makeText(getActivity(), "Deduct failed", Toast.LENGTH_SHORT).show();
+//                    Log.e(TAG, "Deduct failed");
+//                }
+//            } catch (JSONException e) {
+//                e.printStackTrace();
+//            }
         }
     }
 }
