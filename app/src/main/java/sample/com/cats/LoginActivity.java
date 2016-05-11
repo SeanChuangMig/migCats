@@ -35,11 +35,6 @@ public class LoginActivity extends Activity {
     public static final String MyPREFERENCES = "MyPrefs";
     public static final String MyTOKEN = "MyToken";
 
-    // old
-//    public static final String CLIENT_ID = "309f818242abae8fdd1b";
-//    public static final String REDIRECT_URI = "http://localhost:" + PORT + "/oauth/callback";
-
-    // new
     public static final String CLIENT_ID = "410df8f0129111e6b79c57492a68b460";
     public static final String REDIRECT_URI = "migcat://migme/oauth/callback";
     private static final String SCOPES = "profile test-scope invite payment store-admin locker";
@@ -55,10 +50,6 @@ public class LoginActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-//        WebView.setWebContentsDebuggingEnabled(true);
-
-        Log.e(TAG, "onCreate");
-
         Uri uri = new Uri.Builder().scheme("https")
                 .authority("oauth.mig.me")
                 .appendPath("oauth")
@@ -73,28 +64,13 @@ public class LoginActivity extends Activity {
         mToken = sharedpreferences.getString(MyTOKEN, "");
 
         if (mToken.length() > 0) {
-            Log.e(TAG, "Get token from DB, " + mToken);
+            Log.d(TAG, "Get token from DB, " + mToken);
             toMainActivity();
         } else {
             mWebView = (WebView) findViewById(R.id.webview);
             mWebView.loadUrl(uri.toString());
             mWebView.setWebViewClient(mWebViewClient);
         }
-    }
-
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent);
-        String action = intent.getAction();
-        Uri data = intent.getData();
-        Log.e(TAG, "data " + data);
-
-        if (action != null && action.equals(Intent.ACTION_VIEW)) {
-
-            Log.e(TAG, "send " + intent.toString());
-        }
-        Log.e(TAG, "not send " + intent.toString());
     }
 
     private void toMainActivity() {
@@ -111,34 +87,16 @@ public class LoginActivity extends Activity {
         sharedpreferences.edit().putString(MyTOKEN, mToken).commit();
     }
 
-    public void showInvite(String data) {
-        Message msg = mHandler.obtainMessage(HTTP_TASK.INVITE.ordinal(), data);
-        mHandler.sendMessage(msg);
-    }
-
-    public void showBilling(String data) {
-        Message msg = mHandler.obtainMessage(HTTP_TASK.BILLING.ordinal(), data);
-        mHandler.sendMessage(msg);
-    }
-
     private void handleMessage2(Message msg) {
         HTTP_TASK what = HTTP_TASK.values()[msg.what];
         switch (what) {
             case AUTH:
-//                new HttpTask(null, HTTP_TASK.TOKEN).executeOnExecutor(Executors.newCachedThreadPool());
-                Log.e(TAG, "Get AuthCode than request Token");
+                Log.i(TAG, "Get AuthCode than request Token");
                 new requestToken().executeOnExecutor(Executors.newCachedThreadPool());
                 break;
             case TOKEN:
                 writeTokenToSharePreference();
                 toMainActivity();
-                break;
-            case PROFILE:
-            case FRIEND:
-            case CREATE_POST:
-            case INVITE:
-            case BILLING:
-                getAlertDialog((String) msg.obj).show();
                 break;
         }
     }
@@ -231,7 +189,6 @@ public class LoginActivity extends Activity {
         protected void onPostExecute(String token) {
             Log.i(TAG, "Get token");
             setToken(token);
-
         }
     }
 

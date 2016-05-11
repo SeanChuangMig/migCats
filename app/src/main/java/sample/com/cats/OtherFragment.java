@@ -150,7 +150,7 @@ public class OtherFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String result) {
-            Log.e(TAG, "Get invite result: " + result);
+            Log.d(TAG, "Get invite result: " + result);
             try {
                 JSONObject jobj = new JSONObject(result);
                 if (jobj.getString("data").equals("ok"))
@@ -197,7 +197,7 @@ public class OtherFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String result) {
-            Log.e(TAG, "Get billing result: " + result);
+            Log.d(TAG, "Get billing result: " + result);
             try {
                 JSONObject jobj = new JSONObject(result);
                 if (jobj.getJSONObject("error").getInt("errno") == 0)
@@ -239,7 +239,7 @@ public class OtherFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String result) {
-            Log.e(TAG, "Get locker result: " + result);
+            Log.d(TAG, "Get locker result: " + result);
 //            try {
 //                JSONObject jobj = new JSONObject(result);
 //                if (jobj.getJSONObject("error").getInt("errno") == 0)

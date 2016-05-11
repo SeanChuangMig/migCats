@@ -66,7 +66,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Log.e(TAG, "onActivityCreated");
         if (mProfileData == null && mToken.length() > 0) {
             new profileTask().executeOnExecutor(Executors.newCachedThreadPool());
             return;

@@ -78,7 +78,7 @@ public class PostFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String result) {
-            Log.e(TAG, "Get post result: " + result);
+            Log.d(TAG, "Get post result: " + result);
         }
     }
 }
