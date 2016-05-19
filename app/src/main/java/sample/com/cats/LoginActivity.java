@@ -35,9 +35,13 @@ public class LoginActivity extends Activity {
     public static final String MyPREFERENCES = "MyPrefs";
     public static final String MyTOKEN = "MyToken";
 
-    public static final String CLIENT_ID = "410df8f0129111e6b79c57492a68b460";
-    public static final String REDIRECT_URI = "migcat://migme/oauth/callback";
-    private static final String SCOPES = "profile test-scope invite payment store-admin locker";
+    public static final String CLIENT_ID = "309f818242abae8fdd1b";
+    public static final String REDIRECT_URI = "http://localhost:34876/oauth/callback";
+    private static final String SCOPES = "test-scope";
+
+//    public static final String CLIENT_ID = "410df8f0129111e6b79c57492a68b460";
+//    public static final String REDIRECT_URI = "migcat://migme/oauth/callback";
+//    private static final String SCOPES = "profile test-scope invite payment locker";
 
     private WebView mWebView;
     private String mAuthCode;

@@ -179,7 +179,6 @@ public class CatFragment extends Fragment implements AdapterView.OnItemClickList
             String migmePacketageName = "com.projectgoth";
             intent = getActivity().getPackageManager().getLaunchIntentForPackage(migmePacketageName);
             if (intent != null) {
-                Log.e(TAG, "startActivity AA");
                 intent.setAction(Intent.ACTION_SEND);
                 intent.setData(uri);
                 intent.putExtra(Intent.EXTRA_STREAM, uri);
@@ -187,7 +186,6 @@ public class CatFragment extends Fragment implements AdapterView.OnItemClickList
                 intent.setType("text/plain");
                 startActivity(intent);
             } else {
-                Log.e(TAG, "startActivity BB");
                 intent = new Intent(Intent.ACTION_VIEW);
                 intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                 intent.setData(Uri.parse("market://details?id=com.projectgoth"));
